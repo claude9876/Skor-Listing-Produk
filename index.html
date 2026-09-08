@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapor Lapak — Skor Listing &amp; Analisis Iklan GMV Max</title>
+<meta name="description" content="Alat bantu independen untuk menilai listing produk Shopee dan menganalisis performa iklan GMV Max dari data yang kamu masukkan sendiri.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12171a;
+    --panel:#1c2226;
+    --panel-2:#222a2e;
+    --edge:#333d41;
+    --edge-soft:#2a3236;
+    --accent:#d9a441;
+    --accent-dim:#8a6c31;
+    --good:#4a9a86;
+    --warn:#c98a3d;
+    --bad:#bd5646;
+    --text:#efe8d8;
+    --text-dim:#9aa6a4;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:'Manrope',system-ui,sans-serif;
+    line-height:1.55;
+    min-height:100vh;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px;}
+  header{padding:8px 0 20px;border-bottom:1px dashed var(--edge);margin-bottom:22px;}
+  h1{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:800;
+    font-size:clamp(32px,6vw,48px);
+    letter-spacing:.5px;
+    margin:0;
+    color:var(--accent);
+  }
+  .subtitle{color:var(--text-dim);font-size:14.5px;margin-top:6px;max-width:62ch;}
+  .disclaimer{
+    margin-top:14px;
+    font-size:13px;
+    color:var(--text-dim);
+    border-left:3px solid var(--accent-dim);
+    padding:9px 12px;
+    background:var(--panel);
+  }
+  nav.tabs{display:flex;gap:6px;flex-wrap:wrap;}
+  nav.tabs button{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:17px;
+    font-weight:700;
+    letter-spacing:.3px;
+    background:var(--panel);
+    color:var(--text-dim);
+    border:1px solid var(--edge);
+    border-bottom:none;
+    padding:10px 18px 12px 26px;
+    cursor:pointer;
+    position:relative;
+    border-radius:6px 6px 0 0;
+  }
+  nav.tabs button::before{
+    content:'';
+    position:absolute;
+    left:10px; top:50%; transform:translateY(-50%);
+    width:7px;height:7px;border-radius:50%;
+    background:var(--ink);
+    border:1px solid var(--edge);
+  }
+  nav.tabs button.active{
+    background:var(--panel-2);
+    color:var(--accent);
+    border-color:var(--accent-dim);
+  }
+  main{
+    background:var(--panel-2);
+    border:1px solid var(--edge);
+    border-top:none;
+    padding:26px 22px;
+  }
+  section.tabpanel{display:none;}
+  section.tabpanel.active{display:block;}
+  h2.section-title{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:24px;font-weight:700;
+    margin:0 0 4px;
+    color:var(--text);
+  }
+  h3.sub-title{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:16px;margin:18px 0 4px;color:var(--text-dim);
+    font-weight:700;
+  }
+  p.section-desc{color:var(--text-dim);font-size:13.5px;margin:0 0 18px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:680px){.grid-2{grid-template-columns:1fr;}}
+  label{display:block;font-size:13px;color:var(--text-dim);margin-bottom:5px;font-weight:600;}
+  .field{margin-bottom:16px;}
+  input[type=text],input[type=number],textarea{
+    width:100%;
+    background:var(--panel);
+    border:1px solid var(--edge);
+    color:var(--text);
+    padding:9px 11px;
+    font-family:'Manrope',sans-serif;
+    font-size:14px;
+    border-radius:4px;
+  }
+  input[type=file]{color:var(--text-dim);font-size:13px;}
+  input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
+  textarea{min-height:100px;resize:vertical;}
+  .checkrow{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+  .checkrow input{width:auto;}
+  .checkrow label{margin:0;font-size:14px;color:var(--text);font-weight:500;}
+  .hint{font-size:12px;color:var(--text-dim);margin-top:4px;}
+  .btn{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;font-size:16px;letter-spacing:.3px;
+    background:var(--accent);
+    color:#1a1408;
+    border:none;
+    padding:11px 22px;
+    cursor:pointer;
+    border-radius:4px;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent-dim);}
+  .btn.ghost{background:transparent;color:var(--text-dim);border:1px dashed var(--edge);font-size:13px;padding:7px 14px;}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;margin-bottom:10px;}
+  #imagePreview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .thumbwrap{position:relative;}
+  .thumb{width:64px;height:64px;object-fit:cover;border:1px solid var(--edge);border-radius:3px;display:block;}
+  .thumbwrap .res{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.65);font-size:9px;text-align:center;color:#fff;font-family:var(--mono);}
+
+  .result{margin-top:28px;border-top:1px dashed var(--edge);padding-top:24px;}
+  .scorehead{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:20px;}
+  .stamp{
+    width:92px;height:92px;
+    border:3px solid var(--accent);
+    border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    transform:rotate(-4deg);
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:800;font-size:44px;
+    color:var(--accent);
+    flex-shrink:0;
+  }
+  .scoretext .num{font-family:var(--mono);font-size:26px;font-weight:600;}
+  .scoretext .label{color:var(--text-dim);font-size:13px;max-width:44ch;}
+  .tablewrap{overflow-x:auto;}
+  table.rapor{width:100%;border-collapse:collapse;font-size:14px;min-width:520px;}
+  table.rapor th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);padding:6px 8px;border-bottom:1px solid var(--edge);}
+  table.rapor td{padding:10px 8px;border-bottom:1px solid var(--edge-soft);vertical-align:top;}
+  .barwrap{width:110px;height:8px;background:var(--panel);border:1px solid var(--edge);border-radius:4px;overflow:hidden;}
+  .barfill{height:100%;}
+  .note{color:var(--text-dim);font-size:12.5px;}
+  .skip td{opacity:.5;font-style:italic;}
+  .badge{display:inline-block;padding:2px 8px;font-size:11px;border-radius:3px;font-weight:700;font-family:var(--mono);}
+  .badge.good{background:rgba(74,154,134,.18);color:var(--good);}
+  .badge.warn{background:rgba(201,138,61,.18);color:var(--warn);}
+  .badge.bad{background:rgba(189,86,70,.18);color:var(--bad);}
+
+  .modeToggle{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .modeToggle label{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text);font-weight:500;cursor:pointer;background:var(--panel);border:1px solid var(--edge);padding:8px 14px;border-radius:4px;}
+  .modeToggle input{width:auto;}
+
+  .metricsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:10px 0 20px;}
+  .metricEdit{background:var(--panel);border:1px solid var(--edge);padding:10px;border-radius:4px;}
+  .metricEdit label{font-size:11px;margin-bottom:4px;}
+  .metricEdit input{padding:6px 8px;font-size:13px;}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin:16px 0;}
+  .mcard{background:var(--panel);border:1px solid var(--edge);border-left:3px solid var(--edge-soft);padding:12px 14px;border-radius:4px;}
+  .mcard .mlabel{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;}
+  .mcard .mvalue{font-family:var(--mono);font-size:19px;font-weight:600;margin:4px 0;word-break:break-word;}
+  .narrative{background:var(--panel);border-left:3px solid var(--accent-dim);padding:14px 16px;margin-top:18px;font-size:14px;}
+  .narrative p{margin:0 0 10px;}
+  .narrative p:last-child{margin-bottom:0;}
+
+  .calGroup{margin-bottom:26px;}
+  .calGroup h3{font-family:'Barlow Condensed',sans-serif;font-size:18px;margin:0 0 12px;color:var(--text);}
+  .calGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
+  .calGrid .field{margin-bottom:0;}
+  .weightTotal{font-family:var(--mono);font-size:13px;margin-top:8px;}
+  .weightTotal.bad{color:var(--bad);}
+  .weightTotal.good{color:var(--good);}
+
+  footer{margin-top:28px;text-align:center;color:var(--text-dim);font-size:12px;}
+  .ocrbar{width:100%;height:6px;background:var(--panel);border:1px solid var(--edge);border-radius:3px;overflow:hidden;margin-top:8px;display:none;}
+  .ocrbarfill{height:100%;background:var(--accent);width:0%;transition:width .2s;}
+  #ocrStatus{font-size:12.5px;color:var(--text-dim);margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Rapor Lapak</h1>
+    <div class="subtitle">Skor listing produk &amp; analisis performa iklan GMV Max — dihitung dari data yang kamu isi dan unggah sendiri.</div>
+    <div class="disclaimer">Ini alat bantu independen, <strong>bukan produk resmi Shopee</strong>. Skor dihitung dari kaidah umum optimasi marketplace (bisa diubah di tab Kalibrasi) ditambah data asli yang kamu masukkan — bukan algoritma rahasia Shopee. Untuk iklan, hasil baca otomatis dari screenshot wajib kamu periksa dulu sebelum dipakai mengambil keputusan.</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="listing" type="button">Skor Listing</button>
+    <button class="tab" data-tab="ads" type="button">Analisis Iklan GMV Max</button>
+    <button class="tab" data-tab="cal" type="button">Kalibrasi</button>
+  </nav>
+
+  <main>
+    <!-- ================= LISTING TAB ================= -->
+    <section class="tabpanel active" id="panel-listing">
+      <h2 class="section-title">Skor Listing Produk</h2>
+      <p class="section-desc">Isi data listing apa adanya. Skor dan catatan dihitung langsung dari isian ini, termasuk foto yang kamu unggah — bukan perkiraan.</p>
+
+      <div class="btnrow"><button class="btn ghost" id="btnContohListing" type="button">Isi contoh</button></div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="f_judul">Judul Produk</label>
+          <input type="text" id="f_judul" placeholder="Contoh: Kaos Polos Cotton Combed 30s Unisex Lengan Pendek">
+        </div>
+        <div class="field">
+          <label for="f_kategori">Kategori (opsional, untuk catatan saja)</label>
+          <input type="text" id="f_kategori" placeholder="Contoh: Fashion Pria > Atasan">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f_deskripsi">Deskripsi Produk</label>
+        <textarea id="f_deskripsi" placeholder="Tuliskan bahan, ukuran, warna, cara perawatan, garansi, berat, dll."></textarea>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="f_harga">Harga Jual (Rp)</label>
+          <input type="number" id="f_harga" min="0" placeholder="75000">
+        </div>
+        <div class="field">
+          <label for="f_hargaKompetitor">Rata-rata Harga Kompetitor (Rp, opsional)</label>
+          <input type="number" id="f_hargaKompetitor" min="0" placeholder="80000">
+          <div class="hint">Diisi supaya skor kewajaran harga bisa dihitung. Kalau kosong, komponen ini dilewati.</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="f_varian">Jumlah Varian (warna/ukuran)</label>
+          <input type="number" id="f_varian" min="0" value="0">
+        </div>
+        <div class="field">
+          <label for="f_stok">Total Stok</label>
+          <input type="number" id="f_stok" min="0" value="0">
+        </div>
+      </div>
+
+      <div class="checkrow">
+        <input type="checkbox" id="f_video">
+        <label for="f_video">Listing sudah punya video produk</label>
+      </div>
+
+      <div class="checkrow">
+        <input type="checkbox" id="f_produkLama">
+        <label for="f_produkLama">Produk sudah pernah terjual &amp; punya rating (bukan listing baru)</label>
+      </div>
+
+      <div class="grid-2" id="ratingFields" style="display:none;">
+        <div class="field">
+          <label for="f_rating">Rating Produk (0–5)</label>
+          <input type="number" id="f_rating" min="0" max="5" step="0.1" placeholder="4.8">
+        </div>
+        <div class="field">
+          <label for="f_ulasan">Jumlah Ulasan</label>
+          <input type="number" id="f_ulasan" min="0" placeholder="120">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f_images">Foto Produk (unggah file asli, bisa pilih beberapa sekaligus)</label>
+        <input type="file" id="f_images" accept="image/*" multiple>
+        <div class="hint">Resolusi, rasio, dan kecerahan dihitung langsung dari file yang kamu unggah.</div>
+        <div id="imagePreview"></div>
+      </div>
+
+      <div class="btnrow">
+        <button class="btn" id="btnHitungListing" type="button">Hitung Skor</button>
+        <button class="btn secondary" id="btnUnduhListing" type="button" style="display:none;">Unduh Ringkasan (.txt)</button>
+      </div>
+
+      <div class="result" id="listingResult" style="display:none;"></div>
+    </section>
+
+    <!-- ================= ADS TAB ================= -->
+    <section class="tabpanel" id="panel-ads">
+      <h2 class="section-title">Analisis Iklan GMV Max</h2>
+      <p class="section-desc">Unggah screenshot dashboard GMV Max, atau isi angkanya langsung. Hasil baca otomatis dari gambar wajib diperiksa dulu sebelum dianalisis.</p>
+
+      <div class="modeToggle">
+        <label><input type="radio" name="adsMode" value="upload" id="modeUpload" checked> Unggah Screenshot</label>
+        <label><input type="radio" name="adsMode" value="manual" id="modeManual"> Input Manual</label>
+      </div>
+
+      <div id="uploadSection">
+        <div class="field">
+          <label for="f_adsImages">Screenshot Dashboard GMV Max (bisa lebih dari satu)</label>
+          <input type="file" id="f_adsImages" accept="image/*" multiple>
+        </div>
+        <div class="btnrow">
+          <button class="btn" id="btnBacaGambar" type="button">Baca Data dari Gambar</button>
+        </div>
+        <div class="ocrbar" id="ocrBar"><div class="ocrbarfill" id="ocrBarFill"></div></div>
+        <div id="ocrStatus"></div>
+      </div>
+
+      <h3 class="sub-title">Data metrik (periksa &amp; koreksi di sini sebelum analisis)</h3>
+      <div class="btnrow"><button class="btn ghost" id="btnContohAds" type="button">Isi contoh</button></div>
+      <div class="metricsGrid" id="metricsGrid"></div>
+
+      <div class="grid-2">
+        <div class="field">
+          <label for="f_margin">Margin Keuntungan Produk (%, sebelum biaya iklan)</label>
+          <input type="number" id="f_margin" min="0" max="100" placeholder="30">
+          <div class="hint">Dipakai untuk menghitung titik impas ROAS. Tanpa ini, penilaian ROAS hanya memakai acuan umum yang kasar.</div>
+        </div>
+      </div>
+
+      <div class="btnrow">
+        <button class="btn" id="btnAnalisisIklan" type="button">Analisis Performa</button>
+        <button class="btn secondary" id="btnUnduhAds" type="button" style="display:none;">Unduh Ringkasan (.txt)</button>
+      </div>
+
+      <div class="result" id="adsResult" style="display:none;"></div>
+    </section>
+
+    <!-- ================= CALIBRATION TAB ================= -->
+    <section class="tabpanel" id="panel-cal">
+      <h2 class="section-title">Kalibrasi</h2>
+      <p class="section-desc">Ubah bobot &amp; ambang batas ini kalau kamu sudah punya data historis toko sendiri, supaya skor makin sesuai kondisi nyata tokomu — bukan cuma asumsi umum.</p>
+
+      <div class="calGroup">
+        <h3>Bobot Skor Listing (total sebaiknya 100)</h3>
+        <div class="calGrid">
+          <div class="field"><label for="cal_w_judul">Judul</label><input type="number" id="cal_w_judul"></div>
+          <div class="field"><label for="cal_w_deskripsi">Deskripsi</label><input type="number" id="cal_w_deskripsi"></div>
+          <div class="field"><label for="cal_w_gambar">Foto</label><input type="number" id="cal_w_gambar"></div>
+          <div class="field"><label for="cal_w_video">Video</label><input type="number" id="cal_w_video"></div>
+          <div class="field"><label for="cal_w_varian">Varian</label><input type="number" id="cal_w_varian"></div>
+          <div class="field"><label for="cal_w_harga">Harga</label><input type="number" id="cal_w_harga"></div>
+          <div class="field"><label for="cal_w_stok">Stok</label><input type="number" id="cal_w_stok"></div>
+          <div class="field"><label for="cal_w_sosial">Rating/Ulasan</label><input type="number" id="cal_w_sosial"></div>
+        </div>
+        <div class="weightTotal" id="weightTotal"></div>
+      </div>
+
+      <div class="calGroup">
+        <h3>Ambang Batas Listing</h3>
+        <div class="calGrid">
+          <div class="field"><label for="cal_judulMin">Panjang judul minimal (karakter)</label><input type="number" id="cal_judulMin"></div>
+          <div class="field"><label for="cal_judulMax">Panjang judul maksimal (karakter)</label><input type="number" id="cal_judulMax"></div>
+          <div class="field"><label for="cal_deskripsiMin">Panjang deskripsi minimal (karakter)</label><input type="number" id="cal_deskripsiMin"></div>
+          <div class="field"><label for="cal_imgMinRes">Resolusi foto minimal (px)</label><input type="number" id="cal_imgMinRes"></div>
+          <div class="field"><label for="cal_hargaBawah">Toleransi harga di bawah kompetitor (%)</label><input type="number" id="cal_hargaBawah"></div>
+          <div class="field"><label for="cal_hargaAtas">Toleransi harga di atas kompetitor (%)</label><input type="number" id="cal_hargaAtas"></div>
+          <div class="field"><label for="cal_reviewTarget">Target jumlah ulasan skor penuh</label><input type="number" id="cal_reviewTarget"></div>
+        </div>
+      </div>
+
+      <div class="calGroup">
+        <h3>Ambang Batas Iklan</h3>
+        <div class="calGrid">
+          <div class="field"><label for="cal_ctrSehat">CTR sehat minimal (%)</label><input type="number" id="cal_ctrSehat" step="0.1"></div>
+          <div class="field"><label for="cal_roasBuffer">Buffer aman di atas titik impas ROAS (%)</label><input type="number" id="cal_roasBuffer"></div>
+        </div>
+      </div>
+
+      <div class="btnrow"><button class="btn secondary" id="btnResetKalibrasi" type="button">Reset ke Default</button></div>
+    </section>
+  </main>
+
+  <footer>Dibuat untuk seller mandiri &middot; kode terbuka, silakan ubah sesuai kebutuhan tokomu.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js"></script>
+<script>
+(function(){
+  'use strict';
+
+  var DEFAULT_CAL = {
+    w_judul:15, w_deskripsi:15, w_gambar:20, w_video:5, w_varian:10, w_harga:15, w_stok:5, w_sosial:15,
+    judulMin:40, judulMax:100,
+    deskripsiMin:150,
+    imgMinRes:700,
+    hargaBawah:-30, hargaAtas:10,
+    reviewTarget:50,
+    ctrSehat:1.0,
+    roasBuffer:15
+  };
+  var cal = Object.assign({}, DEFAULT_CAL);
+
+  function $(id){ return document.getElementById(id); }
+  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+  function average(arr){ return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
+  function fmtRp(n){ return 'Rp' + Math.round(n).toLocaleString('id-ID'); }
+  function downloadText(filename, text){
+    var blob = new Blob([text], {type:'text/plain'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+
+  // ---------- Tab switching ----------
+  var tabButtons = document.querySelectorAll('nav.tabs button');
+  for (var t=0; t<tabButtons.length; t++){
+    tabButtons[t].addEventListener('click', function(e){
+      var btn = e.currentTarget;
+      var all = document.querySelectorAll('nav.tabs button');
+      for (var i=0;i<all.length;i++) all[i].classList.remove('active');
+      var panels = document.querySelectorAll('section.tabpanel');
+      for (var j=0;j<panels.length;j++) panels[j].classList.remove('active');
+      btn.classList.add('active');
+      $('panel-'+btn.dataset.tab).classList.add('active');
+    });
+  }
+
+  $('f_produkLama').addEventListener('change', function(e){
+    $('ratingFields').style.display = e.target.checked ? 'grid' : 'none';
+  });
+
+  $('btnContohListing').addEventListener('click', function(){
+    $('f_judul').value = 'Kaos Polos Cotton Combed 30s Unisex Lengan Pendek Basic Tee';
+    $('f_kategori').value = 'Fashion Pria > Atasan';
+    $('f_deskripsi').value = 'Kaos polos berbahan cotton combed 30s yang lembut dan menyerap keringat. Tersedia ukuran S, M, L, XL dengan pilihan warna hitam, putih, dan navy. Cocok dipakai sehari-hari maupun untuk disablon custom komunitas. Cara perawatan: cuci dengan air dingin, jangan disikat pada area sablon, jemur di tempat teduh. Garansi tukar ukuran 3 hari. Berat sekitar 150 gram per pcs.';
+    $('f_harga').value = 45000;
+    $('f_hargaKompetitor').value = 50000;
+    $('f_varian').value = 6;
+    $('f_stok').value = 120;
+    $('f_video').checked = true;
+    $('f_produkLama').checked = true;
+    $('ratingFields').style.display = 'grid';
+    $('f_rating').value = 4.8;
+    $('f_ulasan').value = 340;
+  });
+
+  // ---------- Image handling ----------
+  var uploadedImages = [];
+
+  function loadImageMeta(file){
+    return new Promise(function(resolve, reject){
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function(){
+        var w = img.naturalWidth, h = img.naturalHeight;
+        var brightness = 128;
+        try{
+          var s = 80;
+          var c = document.createElement('canvas');
+          c.width = s; c.height = s;
+          var ctx = c.getContext('2d');
+          ctx.drawImage(img,0,0,s,s);
+          var data = ctx.getImageData(0,0,s,s).data;
+          var sum=0, n=0;
+          for(var i=0;i<data.length;i+=4){
+            sum += 0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
+            n++;
+          }
+          brightness = sum/n;
+        }catch(err){ /* biarkan default kalau canvas tidak bisa dibaca */ }
+        resolve({width:w,height:h,brightness:brightness,name:file.name,url:url});
+      };
+      img.onerror = function(){ reject(new Error('Gagal memuat '+file.name)); };
+      img.src = url;
+    });
+  }
+
+  $('f_images').addEventListener('change', function(e){
+    var files = Array.prototype.slice.call(e.target.files);
+    $('imagePreview').innerHTML = '<span class="hint">Memproses gambar...</span>';
+    Promise.all(files.map(loadImageMeta)).then(function(metas){
+      uploadedImages = metas;
+      $('imagePreview').innerHTML = '';
+      metas.forEach(function(im){
+        var wrap = document.createElement('div');
+        wrap.className = 'thumbwrap';
+        wrap.innerHTML = '<img class="thumb" src="'+im.url+'"><div class="res">'+im.width+'&times;'+im.height+'</div>';
+        $('imagePreview').appendChild(wrap);
+      });
+    }).catch(function(err){
+      uploadedImages = [];
+      $('imagePreview').innerHTML = '<span class="hint" style="color:var(--bad);">'+err.message+'</span>';
+    });
+  });
+
+  // ---------- Listing scoring engine ----------
+  var CATEGORIES = [
+    {
+      key:'judul', label:'Judul', weight:function(){return cal.w_judul;}, applicable:function(){return true;},
+      evaluate:function(inp){
+        var title = inp.judul.trim();
+        if(!title) return {fraction:0, notes:['Judul belum diisi.']};
+        var len = title.length;
+        var notes = [];
+        var fraction;
+        if(len < cal.judulMin){
+          fraction = (len/cal.judulMin) * 0.7;
+          notes.push('Judul '+len+' karakter, di bawah rentang ideal '+cal.judulMin+'–'+cal.judulMax+'. Tambahkan detail seperti jenis produk, bahan, atau ukuran.');
+        } else if(len > cal.judulMax){
+          var over = len - cal.judulMax;
+          fraction = Math.max(0.5, 1 - over/200);
+          notes.push('Judul '+len+' karakter, melewati '+cal.judulMax+'. Judul yang terlalu panjang berisiko terpotong di tampilan pencarian mobile.');
+        } else {
+          fraction = 1;
+        }
+        var words = title.split(/\s+/).filter(Boolean);
+        if(words.length < 3){ fraction *= 0.8; notes.push('Judul kurang dari 3 kata, kemungkinan kurang deskriptif.'); }
+        var letters = title.replace(/[^a-zA-Z]/g,'');
+        var capsLetters = title.replace(/[^A-Z]/g,'');
+        if(letters.length > 6 && capsLetters.length/letters.length > 0.7){
+          fraction *= 0.75;
+          notes.push('Judul didominasi huruf kapital, berisiko terlihat spam di mata pembeli.');
+        }
+        if(notes.length===0) notes.push('Panjang & struktur judul sudah sesuai kaidah umum.');
+        return {fraction:clamp01(fraction), notes:notes};
+      }
+    },
+    {
+      key:'deskripsi', label:'Deskripsi', weight:function(){return cal.w_deskripsi;}, applicable:function(){return true;},
+      evaluate:function(inp){
+        var desc = inp.deskripsi.trim();
+        if(!desc) return {fraction:0, notes:['Deskripsi belum diisi.']};
+        var len = desc.length;
+        var lenFraction = Math.min(1, len/cal.deskripsiMin);
+        var notes = [];
+        if(lenFraction < 1) notes.push('Deskripsi '+len+' karakter, idealnya minimal '+cal.deskripsiMin+' karakter.');
+        var checks = [
+          {re:/bahan|material/i, label:'bahan/material'},
+          {re:/ukuran|size|dimensi/i, label:'ukuran/dimensi'},
+          {re:/warna|color/i, label:'warna'},
+          {re:/cara (pakai|penggunaan|perawatan)|petunjuk/i, label:'cara pakai/perawatan'},
+          {re:/garansi|warranty/i, label:'garansi'},
+          {re:/berat|weight|\bgram\b|\bkg\b/i, label:'berat produk'}
+        ];
+        var found = checks.filter(function(c){return c.re.test(desc);});
+        var infoFraction = found.length/checks.length;
+        var fraction = lenFraction*0.6 + infoFraction*0.4;
+        var missing = checks.filter(function(c){return !c.re.test(desc);}).map(function(c){return c.label;});
+        if(missing.length) notes.push('Belum menyebutkan: '+missing.join(', ')+'.');
+        else notes.push('Deskripsi sudah mencakup info penting yang umum dicari pembeli.');
+        return {fraction:clamp01(fraction), notes:notes};
+      }
+    },
+    {
+      key:'gambar', label:'Foto Produk', weight:function(){return cal.w_gambar;}, applicable:function(){return true;},
+      evaluate:function(){
+        var imgs = uploadedImages;
+        if(imgs.length===0) return {fraction:0, notes:['Belum ada foto diunggah.']};
+        var notes = [];
+        var countFraction = Math.min(1, imgs.length/9);
+        var avgRes = average(imgs.map(function(i){return Math.min(i.width,i.height);}));
+        var resFraction = Math.min(1, avgRes/cal.imgMinRes);
+        var avgRatioDelta = average(imgs.map(function(i){return Math.abs((i.width/i.height)-1);}));
+        var ratioFraction = clamp01(1 - avgRatioDelta*2);
+        var avgBrightness = average(imgs.map(function(i){return i.brightness;}));
+        var brightnessFraction = 1;
+        if(avgBrightness < 60) brightnessFraction = avgBrightness/60;
+        else if(avgBrightness > 235) brightnessFraction = clamp01(1-(avgBrightness-235)/60);
+        var fraction = countFraction*0.35 + resFraction*0.35 + ratioFraction*0.15 + brightnessFraction*0.15;
+        if(imgs.length<9) notes.push('Baru pakai '+imgs.length+' dari 9 slot foto yang disediakan Shopee.');
+        if(avgRes < cal.imgMinRes) notes.push('Resolusi rata-rata sekitar '+Math.round(avgRes)+'px, di bawah rekomendasi '+cal.imgMinRes+'px — foto berisiko pecah saat di-zoom.');
+        if(avgBrightness<60) notes.push('Foto cenderung gelap, coba tambah pencahayaan saat pemotretan.');
+        if(avgBrightness>235) notes.push('Foto cenderung overexposed, detail produk bisa hilang.');
+        if(notes.length===0) notes.push('Jumlah, resolusi, dan pencahayaan foto sudah baik.');
+        return {fraction:clamp01(fraction), notes:notes};
+      }
+    },
+    {
+      key:'video', label:'Video', weight:function(){return cal.w_video;}, applicable:function(){return true;},
+      evaluate:function(inp){
+        return {
+          fraction: inp.video?1:0,
+          notes:[inp.video? 'Video produk sudah ada, bagus untuk menambah engagement.' : 'Belum ada video. Menambahkan video singkat sering direkomendasikan untuk menambah minat pembeli.']
+        };
+      }
+    },
+    {
+      key:'varian', label:'Varian', weight:function(){return cal.w_varian;}, applicable:function(){return true;},
+      evaluate:function(inp){
+        var v = inp.varian;
+        if(v>=2) return {fraction:1, notes:['Varian produk sudah tersedia.']};
+        if(v===1) return {fraction:0.5, notes:['Baru 1 varian; tambahkan pilihan warna/ukuran kalau relevan.']};
+        return {fraction:0, notes:['Belum ada varian. Kalau produk punya pilihan warna/ukuran, tambahkan supaya tidak perlu bikin listing terpisah.']};
+      }
+    },
+    {
+      key:'harga', label:'Harga', weight:function(){return cal.w_harga;},
+      applicable:function(inp){ return inp.hargaKompetitor>0 && inp.harga>0; },
+      evaluate:function(inp){
+        var diffPct = ((inp.harga - inp.hargaKompetitor)/inp.hargaKompetitor)*100;
+        var notes=[];
+        var fraction;
+        if(diffPct <= cal.hargaAtas && diffPct >= cal.hargaBawah){
+          fraction = 1;
+          notes.push('Harga masih dalam rentang wajar dibanding rata-rata kompetitor ('+diffPct.toFixed(1)+'%).');
+        } else if(diffPct > cal.hargaAtas){
+          fraction = clamp01(1 - (diffPct-cal.hargaAtas)/40);
+          notes.push('Harga '+diffPct.toFixed(1)+'% di atas rata-rata kompetitor, pastikan ada alasan pembeda (kualitas/garansi) agar tetap kompetitif.');
+        } else {
+          fraction = clamp01(1 - Math.abs(diffPct-cal.hargaBawah)/40);
+          notes.push('Harga jauh di bawah kompetitor ('+diffPct.toFixed(1)+'%), pastikan margin masih aman.');
+        }
+        return {fraction:clamp01(fraction), notes:notes};
+      }
+    },
+    {
+      key:'stok', label:'Stok', weight:function(){return cal.w_stok;}, applicable:function(){return true;},
+      evaluate:function(inp){
+        if(inp.stok<=0) return {fraction:0, notes:['Stok kosong — produk berisiko hilang dari pencarian.']};
+        if(inp.stok<5) return {fraction:0.6, notes:['Stok menipis (di bawah 5), segera restock.']};
+        return {fraction:1, notes:['Stok aman.']};
+      }
+    },
+    {
+      key:'sosial', label:'Rating & Ulasan', weight:function(){return cal.w_sosial;},
+      applicable:function(inp){ return inp.produkLama; },
+      evaluate:function(inp){
+        var ratingFraction = clamp01(inp.rating/5);
+        var reviewFraction = Math.min(1, inp.ulasan/cal.reviewTarget);
+        var fraction = ratingFraction*0.7 + reviewFraction*0.3;
+        var notes = [];
+        notes.push('Rating '+inp.rating.toFixed(1)+'/5 dari '+inp.ulasan+' ulasan.');
+        if(inp.rating<4.5) notes.push('Rating di bawah 4.5, cek keluhan di ulasan untuk perbaikan produk/pengiriman.');
+        if(inp.ulasan<cal.reviewTarget) notes.push('Jumlah ulasan masih sedikit, dorong pembeli memberi rating lewat program cashback ulasan.');
+        return {fraction:clamp01(fraction), notes:notes};
+      }
+    }
+  ];
+
+  function hitungSkorListing(){
+    var inp = {
+      judul: $('f_judul').value,
+      deskripsi: $('f_deskripsi').value,
+      harga: parseFloat($('f_harga').value)||0,
+      hargaKompetitor: parseFloat($('f_hargaKompetitor').value)||0,
+      varian: parseInt($('f_varian').value,10)||0,
+      stok: parseInt($('f_stok').value,10)||0,
+      video: $('f_video').checked,
+      produkLama: $('f_produkLama').checked,
+      rating: parseFloat($('f_rating').value)||0,
+      ulasan: parseInt($('f_ulasan').value,10)||0
+    };
+    if(!inp.judul.trim()){
+      alert('Isi judul produk dulu ya.');
+      return;
+    }
+    var totalWeight=0, earned=0;
+    var rows = [];
+    CATEGORIES.forEach(function(cat){
+      var w = cat.weight();
+      if(!cat.applicable(inp)){
+        rows.push({label:cat.label, skipped:true});
+        return;
+      }
+      totalWeight += w;
+      var res = cat.evaluate(inp);
+      earned += res.fraction*w;
+      rows.push({label:cat.label, fraction:res.fraction, notes:res.notes});
+    });
+    var finalScore = totalWeight>0 ? Math.round((earned/totalWeight)*100) : 0;
+    renderListingResult(finalScore, rows, totalWeight);
+  }
+
+  function gradeOf(score){
+    if(score>=85) return {letter:'A', text:'Sangat siap bersaing'};
+    if(score>=70) return {letter:'B', text:'Baik, tinggal sedikit dipoles'};
+    if(score>=55) return {letter:'C', text:'Cukup, ada beberapa kelemahan'};
+    if(score>=40) return {letter:'D', text:'Kurang, banyak yang perlu dibenahi'};
+    return {letter:'E', text:'Perlu perombakan besar'};
+  }
+  function colorOf(fraction){
+    if(fraction>=0.75) return 'var(--good)';
+    if(fraction>=0.5) return 'var(--warn)';
+    return 'var(--bad)';
+  }
+
+  function renderListingResult(score, rows, totalWeight){
+    var g = gradeOf(score);
+    var html = '';
+    html += '<div class="scorehead"><div class="stamp">'+g.letter+'</div><div class="scoretext"><div class="num">'+score+' / 100</div><div class="label">'+g.text+' &middot; dihitung dari '+totalWeight+' dari 100 poin bobot yang berlaku (komponen tanpa data dilewati)</div></div></div>';
+    html += '<div class="tablewrap"><table class="rapor"><thead><tr><th>Kriteria</th><th>Skor</th><th>Catatan</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      if(r.skipped){
+        html += '<tr class="skip"><td>'+r.label+'</td><td colspan="2">Dilewati (data tidak diisi)</td></tr>';
+        return;
+      }
+      var pct = Math.round(r.fraction*100);
+      html += '<tr><td>'+r.label+'</td>'
+        +'<td><div class="barwrap"><div class="barfill" style="width:'+pct+'%;background:'+colorOf(r.fraction)+';"></div></div><div class="note">'+pct+'%</div></td>'
+        +'<td><div class="note">'+r.notes.join(' ')+'</div></td></tr>';
+    });
+    html += '</tbody></table></div>';
+    $('listingResult').innerHTML = html;
+    $('listingResult').style.display='block';
+    $('btnUnduhListing').style.display='inline-block';
+    window._lastListingReport = buildListingReportText(score,g,rows,totalWeight);
+  }
+
+  function buildListingReportText(score,g,rows,totalWeight){
+    var out = 'RAPOR LAPAK — SKOR LISTING PRODUK\n';
+    out += 'Skor: '+score+'/100 (Grade '+g.letter+' — '+g.text+'), dihitung dari '+totalWeight+' dari 100 poin bobot yang berlaku\n\n';
+    rows.forEach(function(r){
+      if(r.skipped){ out += '- '+r.label+': dilewati (data tidak diisi)\n'; return; }
+      out += '- '+r.label+' ('+Math.round(r.fraction*100)+'%): '+r.notes.join(' ')+'\n';
+    });
+    out += '\nCatatan: skor ini berbasis kaidah umum optimasi marketplace, bukan algoritma resmi Shopee.\n';
+    return out;
+  }
+
+  $('btnHitungListing').addEventListener('click', hitungSkorListing);
+  $('btnUnduhListing').addEventListener('click', function(){ downloadText('rapor-listing.txt', window._lastListingReport||''); });
+
+  // ---------- Ads (GMV Max) ----------
+  var METRIC_DEFS = [
+    {key:'impresi', label:'Impresi/Tayangan', labels:[/tayangan/i,/impresi/i,/dilihat/i,/impression/i]},
+    {key:'klik', label:'Klik', labels:[/\bklik\b/i,/clicks?/i]},
+    {key:'ctr', label:'CTR (%)', labels:[/\bctr\b/i,/persentase klik/i]},
+    {key:'pesanan', label:'Pesanan', labels:[/pesanan/i,/\borders?\b/i]},
+    {key:'terjual', label:'Produk Terjual', labels:[/terjual/i,/items? sold/i]},
+    {key:'omzet', label:'Omzet Penjualan / GMV (Rp)', labels:[/omzet/i,/\bgmv\b/i,/penjualan/i]},
+    {key:'biaya', label:'Biaya Iklan (Rp)', labels:[/biaya iklan/i,/\bbiaya\b/i,/\bspend\b/i,/pengeluaran/i]},
+    {key:'roas', label:'ROAS', labels:[/\broas\b/i,/efektivitas iklan/i]},
+    {key:'acos', label:'ACOS (%)', labels:[/\bacos\b/i]},
+    {key:'cpc', label:'CPC (Rp)', labels:[/\bcpc\b/i,/biaya per klik/i]}
+  ];
+  var PARSE_ORDER = ['ctr','acos','cpc','roas','biaya','klik','impresi','pesanan','terjual','omzet'];
+
+  function buildMetricsGrid(){
+    var grid = $('metricsGrid');
+    grid.innerHTML='';
+    METRIC_DEFS.forEach(function(m){
+      var div = document.createElement('div');
+      div.className='metricEdit';
+      div.innerHTML = '<label for="ads_'+m.key+'">'+m.label+'</label><input type="number" step="any" id="ads_'+m.key+'">';
+      grid.appendChild(div);
+    });
+  }
+  buildMetricsGrid();
+
+  $('btnContohAds').addEventListener('click', function(){
+    $('ads_impresi').value = 18500;
+    $('ads_klik').value = 210;
+    $('ads_ctr').value = '';
+    $('ads_pesanan').value = 9;
+    $('ads_terjual').value = 11;
+    $('ads_omzet').value = 990000;
+    $('ads_biaya').value = 165000;
+    $('ads_roas').value = '';
+    $('ads_acos').value = '';
+    $('ads_cpc').value = '';
+    $('f_margin').value = 30;
+  });
+
+  var modeRadios = document.querySelectorAll('input[name=adsMode]');
+  for (var mr=0; mr<modeRadios.length; mr++){
+    modeRadios[mr].addEventListener('change', function(){
+      $('uploadSection').style.display = $('modeUpload').checked ? 'block':'none';
+    });
+  }
+
+  function parseIDNumber(raw){
+    if(raw==null) return null;
+    var s = String(raw).replace(/[^0-9.,]/g,'');
+    if(!s) return null;
+    if(s.indexOf(',')>-1 && s.indexOf('.')>-1){
+      s = s.replace(/\./g,'').replace(',', '.');
+    } else if(s.indexOf(',')>-1){
+      var parts = s.split(',');
+      if(parts[parts.length-1].length<=2){
+        s = parts.slice(0,-1).join('') + '.' + parts[parts.length-1];
+      } else {
+        s = s.replace(/,/g,'');
+      }
+    } else if(s.indexOf('.')>-1){
+      var parts2 = s.split('.');
+      if(parts2.length>1 && parts2[parts2.length-1].length===3){
+        s = s.replace(/\./g,'');
+      }
+    }
+    var v = parseFloat(s);
+    return isNaN(v)?null:v;
+  }
+
+  function parseOcrText(text){
+    var lines = text.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+    var used = {};
+    var result = {};
+    PARSE_ORDER.forEach(function(key){
+      var m = METRIC_DEFS.filter(function(d){return d.key===key;})[0];
+      for(var i=0;i<lines.length;i++){
+        if(used[i]) continue;
+        var matched = m.labels.some(function(re){return re.test(lines[i]);});
+        if(matched){
+          var cleaned = lines[i].replace(/[a-zA-Z%]+/g,' ');
+          var sameLineNum = cleaned.match(/[0-9][0-9.,]*/);
+          if(sameLineNum){
+            result[m.key]=parseIDNumber(sameLineNum[0]);
+            used[i]=true;
+            break;
+          }
+          for(var j=i+1;j<Math.min(i+3,lines.length);j++){
+            if(used[j]) continue;
+            var num = lines[j].match(/^[0-9][0-9.,]*\s*%?x?$/i);
+            if(num){
+              result[m.key]=parseIDNumber(num[0]);
+              used[j]=true;
+              break;
+            }
+          }
+          if(result[m.key]!=null) break;
+        }
+      }
+    });
+    return result;
+  }
+
+  var ocrWorker = null;
+  $('btnBacaGambar').addEventListener('click', function(){
+    var files = Array.prototype.slice.call($('f_adsImages').files);
+    if(files.length===0){ alert('Pilih minimal satu screenshot dulu.'); return; }
+    $('ocrBar').style.display='block';
+    $('ocrStatus').textContent = 'Menyiapkan mesin baca teks...';
+
+    var workerPromise = ocrWorker ? Promise.resolve(ocrWorker) : Tesseract.createWorker('ind+eng', 1, {
+      logger: function(m){
+        if(m.status && typeof m.progress==='number'){
+          $('ocrStatus').textContent = m.status+'...';
+          $('ocrBarFill').style.width = Math.round(m.progress*100)+'%';
+        }
+      }
+    });
+
+    workerPromise.then(function(worker){
+      ocrWorker = worker;
+      var combinedText = '';
+      var chain = Promise.resolve();
+      files.forEach(function(file){
+        chain = chain.then(function(){
+          $('ocrStatus').textContent = 'Membaca '+file.name+'...';
+          return ocrWorker.recognize(file).then(function(res){
+            combinedText += res.data.text + '\n';
+          });
+        });
+      });
+      return chain.then(function(){ return combinedText; });
+    }).then(function(combinedText){
+      var parsed = parseOcrText(combinedText);
+      METRIC_DEFS.forEach(function(m){
+        if(parsed[m.key]!=null) $('ads_'+m.key).value = parsed[m.key];
+      });
+      $('ocrStatus').innerHTML = 'Selesai membaca. <strong>Cek dan koreksi angka di bawah</strong> sebelum menekan Analisis — hasil OCR bisa saja salah baca angka.';
+    }).catch(function(err){
+      $('ocrStatus').textContent = 'Gagal membaca gambar: '+err.message+'. Coba input manual saja.';
+    });
+  });
+
+  function getAdsInput(){
+    var m = {};
+    METRIC_DEFS.forEach(function(d){
+      var v = parseFloat($('ads_'+d.key).value);
+      m[d.key] = isNaN(v)?null:v;
+    });
+    var margin = parseFloat($('f_margin').value);
+    m.margin = isNaN(margin)?null:margin;
+    return m;
+  }
+
+  function analisisIklan(){
+    var m = getAdsInput();
+    if(m.ctr==null && m.impresi && m.klik) m.ctr = (m.klik/m.impresi)*100;
+    if(m.roas==null && m.omzet && m.biaya) m.roas = m.omzet/m.biaya;
+    if(m.acos==null && m.omzet && m.biaya) m.acos = (m.biaya/m.omzet)*100;
+    if(m.cpc==null && m.biaya && m.klik) m.cpc = m.biaya/m.klik;
+    var konversi = (m.pesanan!=null && m.klik) ? (m.pesanan/m.klik)*100 : null;
+
+    if(m.impresi==null && m.klik==null && m.omzet==null && m.biaya==null){
+      alert('Belum ada data metrik yang terisi. Unggah screenshot atau isi manual dulu.');
+      return;
+    }
+
+    var bep = (m.margin && m.margin>0) ? 100/m.margin : null;
+    var cards = [];
+    var narasi = [];
+    var STATUS_LABEL = {good:'SEHAT', warn:'PERHATIAN', bad:'PERLU EVALUASI'};
+    var STATUS_COLOR = {good:'var(--good)', warn:'var(--warn)', bad:'var(--bad)'};
+
+    if(m.ctr!=null){
+      var ctrStatus;
+      if(m.ctr>=cal.ctrSehat) ctrStatus='good';
+      else if(m.ctr>=cal.ctrSehat*0.5) ctrStatus='warn';
+      else ctrStatus='bad';
+      cards.push({label:'CTR', value:m.ctr.toFixed(2)+'%', status:ctrStatus});
+      if(ctrStatus==='bad') narasi.push('CTR '+m.ctr.toFixed(2)+'% tergolong rendah (acuan umum ≥'+cal.ctrSehat+'%). Coba ganti gambar utama/thumbnail iklan atau evaluasi audiens penargetan.');
+      else if(ctrStatus==='warn') narasi.push('CTR '+m.ctr.toFixed(2)+'% masih di bawah acuan umum '+cal.ctrSehat+'%, ada ruang untuk perbaikan kreatif iklan.');
+      else narasi.push('CTR '+m.ctr.toFixed(2)+'% sudah di atas acuan umum, kreatif iklan cukup menarik perhatian.');
+    }
+
+    if(konversi!=null){
+      cards.push({label:'Tingkat Konversi', value:konversi.toFixed(2)+'%', status:'warn'});
+      narasi.push('Tingkat konversi klik-ke-pesanan: '+konversi.toFixed(2)+'%. Tidak ada acuan universal untuk angka ini karena sangat tergantung kategori produk — bandingkan dengan riwayat toko sendiri dari waktu ke waktu.');
+    }
+
+    if(m.roas!=null){
+      var roasStatus, roasNote;
+      if(bep!=null){
+        var amanDiAtas = bep*(1+cal.roasBuffer/100);
+        if(m.roas>=amanDiAtas){ roasStatus='good'; roasNote='ROAS '+m.roas.toFixed(2)+'x sudah di atas titik impas ('+bep.toFixed(2)+'x) dengan buffer aman — iklan ini menguntungkan.'; }
+        else if(m.roas>=bep){ roasStatus='warn'; roasNote='ROAS '+m.roas.toFixed(2)+'x ada di atas titik impas ('+bep.toFixed(2)+'x) tapi tipis, belum ada buffer aman.'; }
+        else { roasStatus='bad'; roasNote='ROAS '+m.roas.toFixed(2)+'x di bawah titik impas ('+bep.toFixed(2)+'x berdasarkan margin '+m.margin+'%) — iklan ini berpotensi rugi.'; }
+      } else {
+        roasStatus = m.roas>=5?'warn':'bad';
+        roasNote = 'ROAS '+m.roas.toFixed(2)+'x. Isi margin produk di atas supaya penilaian untung/rugi dihitung dari titik impas asli, bukan cuma acuan kasar.';
+      }
+      cards.push({label:'ROAS', value:m.roas.toFixed(2)+'x', status:roasStatus});
+      narasi.push(roasNote);
+    }
+
+    if(m.acos!=null){
+      var acosStatus = 'warn';
+      if(m.margin){ acosStatus = m.acos < m.margin*0.7 ? 'good' : (m.acos > m.margin ? 'bad' : 'warn'); }
+      cards.push({label:'ACOS', value:m.acos.toFixed(1)+'%', status:acosStatus});
+    }
+    if(m.impresi!=null) cards.push({label:'Impresi', value:Math.round(m.impresi).toLocaleString('id-ID'), status:'warn'});
+    if(m.klik!=null) cards.push({label:'Klik', value:Math.round(m.klik).toLocaleString('id-ID'), status:'warn'});
+    if(m.biaya!=null) cards.push({label:'Biaya Iklan', value:fmtRp(m.biaya), status:'warn'});
+    if(m.omzet!=null) cards.push({label:'Omzet dari Iklan', value:fmtRp(m.omzet), status:'warn'});
+    if(m.cpc!=null) cards.push({label:'CPC', value:fmtRp(m.cpc), status:'warn'});
+
+    if(!m.margin) narasi.push('Tips: isi kolom margin keuntungan supaya penilaian ROAS/ACOS dihitung dari titik impas tokomu sendiri, bukan acuan generik.');
+
+    renderAdsResult(cards, narasi, STATUS_LABEL, STATUS_COLOR);
+  }
+
+  function renderAdsResult(cards, narasi, STATUS_LABEL, STATUS_COLOR){
+    var html = '<div class="cards">';
+    cards.forEach(function(c){
+      html += '<div class="mcard" style="border-left-color:'+STATUS_COLOR[c.status]+';">'
+        +'<div class="mlabel">'+c.label+'</div><div class="mvalue">'+c.value+'</div>'
+        +'<span class="badge '+c.status+'">'+STATUS_LABEL[c.status]+'</span></div>';
+    });
+    html += '</div>';
+    html += '<div class="narrative">'+narasi.map(function(n){return '<p>'+n+'</p>';}).join('')+'</div>';
+    $('adsResult').innerHTML = html;
+    $('adsResult').style.display='block';
+    $('btnUnduhAds').style.display='inline-block';
+    window._lastAdsReport = 'RAPOR LAPAK — ANALISIS IKLAN GMV MAX\n\n'+narasi.join('\n\n');
+  }
+
+  $('btnAnalisisIklan').addEventListener('click', analisisIklan);
+  $('btnUnduhAds').addEventListener('click', function(){ downloadText('analisis-iklan.txt', window._lastAdsReport||''); });
+
+  // ---------- Kalibrasi wiring ----------
+  var CAL_FIELDS = ['w_judul','w_deskripsi','w_gambar','w_video','w_varian','w_harga','w_stok','w_sosial',
+    'judulMin','judulMax','deskripsiMin','imgMinRes','hargaBawah','hargaAtas','reviewTarget','ctrSehat','roasBuffer'];
+  var WEIGHT_FIELDS = ['w_judul','w_deskripsi','w_gambar','w_video','w_varian','w_harga','w_stok','w_sosial'];
+
+  function calIdOf(field){ return 'cal_'+field; }
+
+  function updateWeightTotal(){
+    var total = WEIGHT_FIELDS.reduce(function(s,f){ return s+(parseFloat($(calIdOf(f)).value)||0); },0);
+    var el = $('weightTotal');
+    el.textContent = 'Total bobot saat ini: '+total+' / 100';
+    el.className = 'weightTotal '+(total===100?'good':'bad');
+  }
+  function loadCalToUI(){
+    CAL_FIELDS.forEach(function(f){ $(calIdOf(f)).value = cal[f]; });
+    updateWeightTotal();
+  }
+  CAL_FIELDS.forEach(function(f){
+    $(calIdOf(f)).addEventListener('input', function(){
+      cal[f] = parseFloat($(calIdOf(f)).value)||0;
+      updateWeightTotal();
+    });
+  });
+  $('btnResetKalibrasi').addEventListener('click', function(){
+    cal = Object.assign({}, DEFAULT_CAL);
+    loadCalToUI();
+  });
+  loadCalToUI();
+
+})();
+</script>
+</body>
+</html>
